@@ -1,0 +1,50 @@
+version: '3'
+services:
+  # NuxtJS
+  app:
+    container_name: app_container
+    image: app_image
+    build: ./docker/apps/app
+    ports:
+      - 8080:8080
+    volumes:
+      - ./apps/app:/opt/app
+    stdin_open: true
+    tty: true
+    environment:
+      TZ: Europe/Moscow
+    #command: yarn serve
+  # REST API NodeJS Express
+  api:
+    container_name: api_container
+    image: api_image
+    build: ./docker/apps/api
+    ports:
+      - 3000:3000
+    volumes:
+      - ./apps/api:/opt/api
+    tty: true
+    environment:
+      CHOKIDAR_USEPOLLING: 1
+      TZ: Europe/Moscow
+    depends_on:
+      - db
+  # Database MySQL
+  db:
+    container_name: db_container
+    build: ./docker/db
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db/conf/my.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./db/init_db:/docker-entrypoint-initdb.d:rw
+      - test_data:/var/lib/mysql:rw
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - TZ="Europe/Moscow"
+volumes:
+  test_data:
